@@ -99,7 +99,7 @@ export default function App() {
               <div className="spinner" />
               <p>Carregando e traduzindo a receita…</p>
               <p className="recipe-loading-hint">
-                Pode levar até 30s na primeira vez que alguém abre essa receita.
+                Pode levar até 30 segundos na primeira vez que alguém abre essa receita.
               </p>
             </div>
           ) : selectedRecipe ? (
