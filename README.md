@@ -59,15 +59,15 @@ A Spoonacular é uma API em inglês, então o backend traduz automaticamente o q
 
 ## Tradução do título e modo de preparo da receita
 
-Diferente dos nomes de ingredientes (dicionário local), o **título**, o **resumo** e os **passos do modo de preparo** são frases inteiras — por isso usam tradução automática de verdade, via `backend/src/services/textTranslator.js`.
+Diferente dos nomes de ingredientes (dicionário local), o **título**, o **resumo** e os **passos do modo de preparo** são frases inteiras — por isso usam tradução automática via IA, feita em `backend/src/services/textTranslator.js`.
 
-- Serviço usado: **MyMemory** (`api.mymemory.translated.net`), gratuito e sem necessidade de conta/chave.
-- Tentamos primeiro o LibreTranslate, mas as instâncias públicas passaram a exigir chave de API e os espelhos comunitários estavam fora do ar no momento do teste — por isso a troca pra MyMemory.
-- Resumos longos são divididos em frases e traduzidos em partes (a API tem limite de caracteres por requisição), depois remontados.
-- **Se o serviço falhar ou estiver fora do ar**, a receita continua funcionando normalmente — só volta a mostrar aquele trecho em inglês (nunca quebra a página).
+- Serviço usado: **OpenRouter** (`openrouter.ai`), com um modelo gratuito (`nvidia/nemotron-nano-9b-v2:free` por padrão) — precisa de uma chave de API grátis em `openrouter.ai/keys`.
+- Título, resumo e os passos são traduzidos numa **única chamada** por receita (o modelo recebe tudo como JSON e devolve traduzido no mesmo formato).
+- **Histórico de tentativas anteriores** (por que não é MyMemory/LibreTranslate): tentamos primeiro o LibreTranslate, mas as instâncias públicas passaram a exigir chave e os espelhos comunitários estavam fora do ar; depois a MyMemory, que funcionava daqui mas era bloqueada pelo IP compartilhado dos servidores do Render (nem um e-mail de identificação resolveu — parece ser bloqueio de IP, não de cota). Uma IA por chave de API contorna os dois problemas.
+- **Modelos gratuitos do OpenRouter variam** em velocidade (pode levar até ~30s na primeira vez que uma receita é aberta — o frontend mostra um spinner avisando isso) e em qualidade (ocasionalmente erra uma tradução, ou deixa o título sem traduzir mesmo traduzindo os passos). Se um modelo ficar consistentemente limitado ("temporarily rate-limited upstream" no log), troque `OPENROUTER_MODEL` no `.env` por outro gratuito — lista atualizada em `openrouter.ai/models?max_price=0`.
+- **Se a tradução falhar** (rede, rate limit, chave não configurada), a receita continua funcionando normalmente — só mostra aquele trecho em inglês (nunca quebra a página). O motivo da falha fica no log do backend, procure por `[textTranslator] Falha ao traduzir`.
 - Resultado só entra em cache (`backend/src/services/cache.js`, 6h) depois de traduzido, então a mesma receita não é traduzida de novo a cada visita.
-- **Por decisão de custo/confiabilidade, só a tela de detalhe é traduzida** — os títulos na lista de resultados continuam em inglês, para não estourar a cota gratuita fazendo dezenas de traduções a cada busca.
-- Pra aumentar a cota diária, defina `MYMEMORY_EMAIL` no `.env` do backend com um e-mail (ver `.env.example`).
+- **Por decisão de custo/velocidade, só a tela de detalhe é traduzida** — os títulos na lista de resultados continuam em inglês, para não fazer dezenas de chamadas de IA a cada busca.
 
 ## Favoritos, cache e erros (Fase 5)
 

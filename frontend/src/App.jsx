@@ -20,6 +20,7 @@ export default function App() {
   const [favorites, setFavorites] = useState(() => getFavorites());
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadingRecipe, setLoadingRecipe] = useState(false);
   const [error, setError] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
 
@@ -66,7 +67,7 @@ export default function App() {
   }
 
   async function handleSelectRecipe(id) {
-    setLoading(true);
+    setLoadingRecipe(true);
     setError(null);
 
     try {
@@ -75,7 +76,7 @@ export default function App() {
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      setLoadingRecipe(false);
     }
   }
 
@@ -91,9 +92,17 @@ export default function App() {
 
       {view === 'home' && !selectedRecipe && <Home onStartSearch={() => changeView('search')} />}
 
-      {(view === 'search' || view === 'favorites' || selectedRecipe) && (
+      {(view === 'search' || view === 'favorites' || selectedRecipe || loadingRecipe) && (
         <div className="page">
-          {selectedRecipe ? (
+          {loadingRecipe ? (
+            <div className="recipe-loading">
+              <div className="spinner" />
+              <p>Carregando e traduzindo a receita…</p>
+              <p className="recipe-loading-hint">
+                Pode levar até 30s na primeira vez que alguém abre essa receita.
+              </p>
+            </div>
+          ) : selectedRecipe ? (
             <RecipeDetail
               recipe={selectedRecipe}
               onBack={() => setSelectedRecipe(null)}
