@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import Nav from './components/Nav';
+import Home from './components/Home';
 import IngredientInput from './components/IngredientInput';
 import Filters from './components/Filters';
 import RecipeList from './components/RecipeList';
@@ -10,7 +12,7 @@ import './App.css';
 const EMPTY_FILTERS = { cuisine: '', diet: '', tempo: '', dificuldade: '', intolerances: [] };
 
 export default function App() {
-  const [view, setView] = useState('search'); // 'search' | 'favorites'
+  const [view, setView] = useState('home'); // 'home' | 'search' | 'favorites'
   const [ingredients, setIngredients] = useState([]);
   const [filterOptions, setFilterOptions] = useState(null);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
@@ -85,73 +87,65 @@ export default function App() {
 
   return (
     <div className="app">
-      <header>
-        <h1>🍲 Remi</h1>
-        <p>O que você tem na geladeira? A gente encontra a receita.</p>
-      </header>
+      <Nav view={view} onChangeView={changeView} favoritesCount={favorites.length} />
 
-      <nav className="tabs">
-        <button
-          type="button"
-          className={view === 'search' ? 'tab active' : 'tab'}
-          onClick={() => changeView('search')}
-        >
-          Buscar
-        </button>
-        <button
-          type="button"
-          className={view === 'favorites' ? 'tab active' : 'tab'}
-          onClick={() => changeView('favorites')}
-        >
-          Favoritos {favorites.length > 0 && `(${favorites.length})`}
-        </button>
-      </nav>
+      {view === 'home' && !selectedRecipe && <Home onStartSearch={() => changeView('search')} />}
 
-      {selectedRecipe ? (
-        <RecipeDetail
-          recipe={selectedRecipe}
-          onBack={() => setSelectedRecipe(null)}
-          isFavorite={isFavorite(favorites, selectedRecipe.id)}
-          onToggleFavorite={handleToggleFavorite}
-        />
-      ) : view === 'favorites' ? (
-        <RecipeList
-          recipes={favorites}
-          onSelect={handleSelectRecipe}
-          favorites={favorites}
-          onToggleFavorite={handleToggleFavorite}
-          emptyMessage="Você ainda não favoritou nenhuma receita. Toque no coração de uma receita para guardá-la aqui."
-        />
-      ) : (
-        <>
-          <IngredientInput
-            ingredients={ingredients}
-            onAdd={addIngredient}
-            onRemove={removeIngredient}
-          />
-
-          <Filters options={filterOptions} values={filters} onChange={setFilters} />
-
-          <button
-            type="button"
-            className="search-button"
-            onClick={handleSearch}
-            disabled={loading}
-          >
-            {loading ? 'Buscando...' : 'Buscar receitas'}
-          </button>
-
-          {error && <p className="error-message">⚠️ {error}</p>}
-
-          {hasSearched && !loading && !error && (
-            <RecipeList
-              recipes={recipes}
-              onSelect={handleSelectRecipe}
-              favorites={favorites}
+      {(view === 'search' || view === 'favorites' || selectedRecipe) && (
+        <div className="page">
+          {selectedRecipe ? (
+            <RecipeDetail
+              recipe={selectedRecipe}
+              onBack={() => setSelectedRecipe(null)}
+              isFavorite={isFavorite(favorites, selectedRecipe.id)}
               onToggleFavorite={handleToggleFavorite}
             />
+          ) : view === 'favorites' ? (
+            <>
+              <h2 className="section-title">Seus favoritos</h2>
+              <RecipeList
+                recipes={favorites}
+                onSelect={handleSelectRecipe}
+                favorites={favorites}
+                onToggleFavorite={handleToggleFavorite}
+                emptyMessage="Você ainda não favoritou nenhuma receita. Toque no coração de uma receita para guardá-la aqui."
+              />
+            </>
+          ) : (
+            <>
+              <section className="search-card">
+                <h2 className="section-title">O que você tem?</h2>
+                <IngredientInput
+                  ingredients={ingredients}
+                  onAdd={addIngredient}
+                  onRemove={removeIngredient}
+                />
+
+                <Filters options={filterOptions} values={filters} onChange={setFilters} />
+
+                <button
+                  type="button"
+                  className="search-button"
+                  onClick={handleSearch}
+                  disabled={loading}
+                >
+                  {loading ? 'Buscando...' : 'Buscar receitas'}
+                </button>
+
+                {error && <p className="error-message">⚠️ {error}</p>}
+              </section>
+
+              {hasSearched && !loading && !error && (
+                <RecipeList
+                  recipes={recipes}
+                  onSelect={handleSelectRecipe}
+                  favorites={favorites}
+                  onToggleFavorite={handleToggleFavorite}
+                />
+              )}
+            </>
           )}
-        </>
+        </div>
       )}
     </div>
   );
