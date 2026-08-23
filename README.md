@@ -54,8 +54,20 @@ A Spoonacular é uma API em inglês, então o backend traduz automaticamente o q
 
 **Limitações do dicionário (aceitáveis para o MVP):**
 - Cobre os ingredientes mais comuns de geladeira/despensa brasileira (~90 termos). Um ingrediente digitado que não esteja no dicionário é enviado como está (a API pode ou não reconhecê-lo).
-- A tradução de volta para PT-BR é "melhor esforço": frases longas (ex.: o modo de preparo, o resumo da receita) continuam em inglês; só nomes de ingredientes são traduzidos, e podem sair com texto misto (ex.: "spanish-syle arroz mix").
+- A tradução de volta para PT-BR é "melhor esforço": só nomes de ingredientes são traduzidos, e podem sair com texto misto (ex.: "spanish-syle arroz mix").
 - Para adicionar novos ingredientes, edite `backend/src/data/ingredientTranslations.js`.
+
+## Tradução do título e modo de preparo da receita
+
+Diferente dos nomes de ingredientes (dicionário local), o **título**, o **resumo** e os **passos do modo de preparo** são frases inteiras — por isso usam tradução automática de verdade, via `backend/src/services/textTranslator.js`.
+
+- Serviço usado: **MyMemory** (`api.mymemory.translated.net`), gratuito e sem necessidade de conta/chave.
+- Tentamos primeiro o LibreTranslate, mas as instâncias públicas passaram a exigir chave de API e os espelhos comunitários estavam fora do ar no momento do teste — por isso a troca pra MyMemory.
+- Resumos longos são divididos em frases e traduzidos em partes (a API tem limite de caracteres por requisição), depois remontados.
+- **Se o serviço falhar ou estiver fora do ar**, a receita continua funcionando normalmente — só volta a mostrar aquele trecho em inglês (nunca quebra a página).
+- Resultado só entra em cache (`backend/src/services/cache.js`, 6h) depois de traduzido, então a mesma receita não é traduzida de novo a cada visita.
+- **Por decisão de custo/confiabilidade, só a tela de detalhe é traduzida** — os títulos na lista de resultados continuam em inglês, para não estourar a cota gratuita fazendo dezenas de traduções a cada busca.
+- Pra aumentar a cota diária, defina `MYMEMORY_EMAIL` no `.env` do backend com um e-mail (ver `.env.example`).
 
 ## Favoritos, cache e erros (Fase 5)
 

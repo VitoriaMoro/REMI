@@ -4,6 +4,7 @@ const { toEnglish, toPortuguese } = require('../services/ingredientTranslator');
 const { computeDifficulty } = require('../services/difficulty');
 const { toFriendlyMessage } = require('../services/friendlyError');
 const { getCache, setCache } = require('../services/cache');
+const { translateRecipeContent } = require('../services/textTranslator');
 const filterOptions = require('../data/filterOptions');
 
 const router = express.Router();
@@ -174,14 +175,24 @@ router.get('/:id', async (req, res) => {
       const recipe = await getRecipeInformation(id);
       const steps = recipe.analyzedInstructions?.[0]?.steps || [];
 
+      // Título, resumo e modo de preparo vêm em inglês da Spoonacular; manda
+      // pro serviço de tradução (LibreTranslate). Se ele falhar/estiver fora
+      // do ar, translateRecipeContent devolve o texto original em inglês —
+      // a receita nunca quebra por causa disso.
+      const translated = await translateRecipeContent({
+        title: recipe.title,
+        summary: recipe.summary,
+        steps,
+      });
+
       payload = {
         id: recipe.id,
-        title: recipe.title,
+        title: translated.title,
         image: recipe.image,
         readyInMinutes: recipe.readyInMinutes,
         servings: recipe.servings,
         sourceUrl: recipe.sourceUrl,
-        summary: recipe.summary,
+        summary: translated.summary,
         difficulty: computeDifficulty(recipe.readyInMinutes, steps.length),
         ingredients: (recipe.extendedIngredients || []).map((i) => ({
           name: toPortuguese(i.name),
@@ -191,12 +202,14 @@ router.get('/:id', async (req, res) => {
           // texto (medidas, observações) permanece em inglês
           original: toPortuguese(i.original),
         })),
-        steps: steps.map((s) => ({
+        steps: translated.steps.map((s) => ({
           number: s.number,
           step: s.step,
         })),
       };
 
+      // Só entra em cache depois de traduzido — evita pagar a tradução de
+      // novo a cada visita à mesma receita dentro da janela do cache.
       setCache(cacheKey, payload, RECIPE_DETAIL_TTL_MS);
     }
 
