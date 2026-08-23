@@ -2,7 +2,9 @@
 
 App que sugere receitas a partir dos ingredientes disponíveis na geladeira do usuário, usando a Spoonacular API (RapidAPI).
 
-Ver o plano completo em [`plano-execucao-remi.md`](./plano-execucao-remi.md). Para colocar no ar, ver [`DEPLOY.md`](./DEPLOY.md).
+🔗 **No ar:** https://remi-frontend-65kj.onrender.com (backend em https://remi-backend-65kj.onrender.com)
+
+Ver o plano completo em [`plano-execucao-remi.md`](./plano-execucao-remi.md). Para colocar no ar (ou refazer o deploy), ver [`DEPLOY.md`](./DEPLOY.md).
 
 ## Estrutura
 
