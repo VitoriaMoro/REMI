@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: remi-backend
+    runtime: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: SPOONACULAR_API_KEY
+        sync: false
+      - key: SPOONACULAR_API_HOST
+        value: spoonacular-recipe-food-nutrition-v1.p.rapidapi.com
+
+  - type: web
+    name: remi-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      # Preencha com a URL pública do remi-backend depois que ele for
+      # criado pela primeira vez (ex.: https://remi-backend.onrender.com)
+      - key: VITE_API_URL
+        sync: false
+    routes:
+      # SPA do React: qualquer rota cai no index.html, o React Router (se
+      # vier a existir) cuida do resto.
+      - type: rewrite
+        source: /*
+        destination: /index.html
